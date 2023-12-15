@@ -10,7 +10,8 @@ export default function TelaPrincipal() {
     const [ViewInfos, setView] = useState()
     const [ViewTop, setViewTop] = useState()
     const [ViewHourInfo, setHourInfo] = useState()
-
+    
+    global.diasDaSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
     const FazerRequest = async () => {
         axios.get(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${input}?unitGroup=metric&include=hours%2Cdays&lang=pt&key=824BLCVKKZCSN4HLQVJ6HBSPF&conten`)
@@ -22,9 +23,15 @@ export default function TelaPrincipal() {
     }
 
     const ArrumarViewTop = async (data, posicao) => {
+
+        var datetime = data.days[posicao].datetime.split("-")
+        const dia = new Date(datetime[2],datetime[1],datetime[0]);
+        const diaDaSemanaNumero = dia.getDay();
+        const diasDaSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        const nomeDoDiaDaSemana = diasDaSemana[diaDaSemanaNumero];
+
         const hoje = new Date()
-        let agora = hoje.getHours() - 1
-        console.log(data.days[posicao].hours[2].datetime)
+        let agora = hoje.getHours()
         setViewTop(
             <View>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", margin: "3%" }}>
@@ -32,10 +39,12 @@ export default function TelaPrincipal() {
                         <Text style={{ color: "#FFF", fontSize: 22 }}>{data.resolvedAddress}</Text>
                         <Text style={{ color: "#FFF", fontSize: 77 }}>{data.days[posicao].hours[agora].temp}°</Text>
                         <Text style={{ color: "#FFF", fontSize: 22 }}>Min. {data.days[posicao].tempmin}° Max. {data.days[posicao].tempmax}°</Text>
+                        <Text style={{ color: "#FFF", fontSize: 26 }}>{nomeDoDiaDaSemana}</Text>
+
                     </View>
                     <Image
                         source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${data.days[posicao].icon}.png?raw=true` }}
-                        style={{ width: "42%", height: "100%", marginStart: "3%" }}
+                        style={{ width: "44%", height: "85%", marginStart: "3%" }}
                     />
                 </View>
                 <View style={{ justifyContent: "center", alignItems: "center" }}>
@@ -50,17 +59,18 @@ export default function TelaPrincipal() {
         let agora = hoje.getHours()
         let arrayView = []
 
-        for (var i = 0; i <= 23; i++) {
+        for (var i = agora; i <= 23; i++) {
+
             arrayView.push(
                 <View style={styles.hour_view_unico}>
                     <Text style={styles.text_hour}>
-                        {data.days[posicao].hours[i].temp}
+                        {data.days[posicao].hours[i].temp}°
                     </Text>
                     <Image
                         source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${data.days[posicao].hours[i].icon}.png?raw=true` }}
-                        style={{ width: 25, height: 25, alignSelf:"center"}}
+                        style={{ width: 25, height: 25, alignSelf: "center" }}
                     />
-                    <Text style={styles.text_hour}>{data.days[posicao].hours[i].precipprob}</Text>
+                    <Text style={styles.text_hour}>{data.days[posicao].hours[i].precipprob}%</Text>
                     <Text style={styles.text_hour}>{data.days[posicao].hours[i].datetime.slice(0, -3)}</Text>
                 </View>
             )
@@ -81,29 +91,38 @@ export default function TelaPrincipal() {
                 />
                 <TouchableOpacity style={styles.button_top} onPress={() => FazerRequest()}><Text>Pesq</Text></TouchableOpacity>
             </View>
-            <View style={styles.view_top_infos}>
-                {ViewTop}
-            </View>
-            <View>
-                <ScrollView horizontal={true} style={styles.scroll_hour_info}>
+
+            <ScrollView>
+                <View style={styles.view_top_infos}>
+                    {ViewTop}
+                </View>
+                <View>
+                    <ScrollView horizontal={true} style={styles.scroll_hour_info}>
                         {ViewHourInfo}
-                </ScrollView>
-            </View>
-            <View style={styles.resposta}>
-                {ViewInfos != undefined ? (ViewInfos.days.map((componente, index) => (
-                    index < 7 ? (
-                        <View key={index} style={styles.views} >
-                            <Image
-                                key={index}
-                                source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${componente.icon}.png?raw=true` }}
-                                style={{ width: 35, height: 35, marginEnd: "2%" }}
-                            />
-                            <Text style={styles.views_text}>Temp:{componente.tempmin}° - </Text>
-                            <Text style={styles.views_text}>{componente.tempmax}°</Text>
-                        </View>
-                    ) : (<></>)
-                ))) : (<><Text>Não existe</Text></>)}
-            </View>
+                    </ScrollView>
+                </View>
+                <View style={styles.resposta}>
+                    {ViewInfos != undefined ? (ViewInfos.days.map((componente, index) => (
+                        index+1 < 7 ? (
+                            <TouchableOpacity key={index} style={styles.views}>
+                                <Image
+                                    key={index}
+                                    source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${componente.icon}.png?raw=true` }}
+                                    style={{ width: 35, height: 35, marginEnd: "2%" }}
+                                />
+                                <Text style={styles.views_text}>{
+                                   global.diasDaSemana[new Date(
+                                    componente.datetime.split("-")[2],
+                                    componente.datetime.split("-")[1],
+                                    componente.datetime.split("-")[0]).getDay()]
+                                    }</Text>
+                                <Text style={styles.views_text}>Temp:{componente.tempmin}° - </Text>
+                                <Text style={styles.views_text}>{componente.tempmax}°</Text>
+                            </TouchableOpacity>
+                        ) : (<></>)
+                    ))) : (<><Text>Não existe</Text></>)}
+                </View>
+            </ScrollView>
         </View>
     )
 }
@@ -146,6 +165,11 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     views: {
+        backgroundColor: "#181818",
+        margin: "2%",
+        marginBottom: "1%",
+        padding: 10,
+        borderRadius: 40,
         flexDirection: "row",
         marginTop: "2%",
         height: "8%",
@@ -172,15 +196,16 @@ const styles = StyleSheet.create({
         flexDirection: "row",
     },
     hour_view_unico: {
-        backgroundColor: "#FFF",
+        backgroundColor: "#181818",
         borderRadius: 30,
-        padding:10,
-        margin:5,
+        padding: 10,
+        margin: 5,
         justifyContent: "center",
         alignContent: "center",
         // margin:5,
     },
     text_hour: {
-        alignSelf:"center"
+        alignSelf: "center",
+        color: "#FFF"
     }
 })
