@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Climating_RN",
-    "slug": "Climating_RN",
+    "name": "Climating",
+    "slug": "Climating",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -1,8 +1,7 @@
 import { TextInput, TouchableOpacity, View, Text, StyleSheet, ImageBackground, Image, KeyboardAvoidingView, ScrollView } from "react-native";
 import axios from 'axios';
 import { useState } from "react";
-
-
+import Toast from 'react-native-toast-message';
 
 export default function TelaPrincipal() {
 
@@ -10,24 +9,30 @@ export default function TelaPrincipal() {
     const [ViewInfos, setView] = useState()
     const [ViewTop, setViewTop] = useState()
     const [ViewHourInfo, setHourInfo] = useState()
-
+    const [DiaAtual, setDiaAtual] = useState(0)
 
     const FazerRequest = async () => {
         axios.get(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${input}?unitGroup=metric&include=hours%2Cdays&lang=pt&key=824BLCVKKZCSN4HLQVJ6HBSPF&conten`)
             .then((response) => {
-                console.log(response)
                 setView(response.data)
-                ArrumarViewTop(response.data, 0)
-                ArrumarViewHour(response.data, 0)
+                setDiaAtual(0)
+                ArrumarViewTop(0)
+                ArrumarViewHour(0)
             })
             .catch(function (error) {
-                console.log(error);
+                showToast()
               });
     }
+    const showToast = async () => {
+        Toast.show({
+          type: 'error',
+          text1: 'Cidade não encontrada!',
+          position:"bottom"
+        });
+    }
 
-    const ArrumarViewTop = async (data, posicao) => {
-
-        const date = new Date(data.days[posicao].datetime);
+    const ArrumarViewTop = async (posicao) => {
+        const date = new Date(ViewInfos.days[posicao].datetime);
         const options = { weekday: 'long' };
         const currentDayOfWeek = date.toLocaleString('pt-BR', options);
         const hoje = new Date()
@@ -36,42 +41,42 @@ export default function TelaPrincipal() {
             <View key={"topkey"} >
                 <View key={'view1'} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", margin: "1%" }}>
                     <View style={{ width: "52%" }}>
-                        <Text style={{ color: "#FFF", fontSize: 20 }}>{data.resolvedAddress}</Text>
-                        <Text style={{ color: "#FFF", fontSize: 75 }}>{data.days[posicao].hours[agora].temp}°</Text>
-                        <Text style={{ color: "#FFF", fontSize: 20 }}>Min. {data.days[posicao].tempmin}° Max. {data.days[posicao].tempmax}°</Text>
+                        <Text style={{ color: "#FFF", fontSize: 20 }}>{ViewInfos.resolvedAddress}</Text>
+                        <Text style={{ color: "#FFF", fontSize: 75 }}>{ViewInfos.days[posicao].hours[agora].temp}°</Text>
+                        <Text style={{ color: "#FFF", fontSize: 20 }}>Min. {ViewInfos.days[posicao].tempmin}° Max. {ViewInfos.days[posicao].tempmax}°</Text>
                         <Text style={{ color: "#FFF", fontSize: 26 }}>{currentDayOfWeek.split(',')[0].charAt(0).toUpperCase()+currentDayOfWeek.split(',')[0].substring(1)}</Text>
                     </View>
                     <Image
                         key={"imagekey"}
-                        source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${data.days[posicao].icon}.png?raw=true` }}
+                        source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${ViewInfos.days[posicao].icon}.png?raw=true` }}
                         style={{ width: "40%", height: "70%" }}
                     />
                 </View>
                 <View key={'view2'} style={{ justifyContent: "center", alignItems: "center" }}>
-                    <Text style={styles.descricao}>{data.days[posicao].description}</Text>
+                    <Text style={styles.descricao}>{ViewInfos.days[posicao].description}</Text>
                 </View>
             </View>
         )
     }
 
-    const ArrumarViewHour = async (data, posicao) => {
+    const ArrumarViewHour = async (posicao) => {
         const hoje = new Date()
         let agora = hoje.getHours()
         let arrayView = []
-
+        posicao != 0 ? agora=0 : null;
         for (var i = agora; i <= 23; i++) {
             arrayView.push(
                 <View key={i} style={styles.hour_view_unico}>
                     <Text key={`temp${i}`} style={styles.text_hour}>
-                        {data.days[posicao].hours[i].temp}°
+                        {ViewInfos.days[posicao].hours[i].temp}°
                     </Text>
                     <Image
                         key={`imgdias${i}`}
-                        source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${data.days[posicao].hours[i].icon}.png?raw=true` }}
+                        source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${ViewInfos.days[posicao].hours[i].icon}.png?raw=true` }}
                         style={{ width: 25, height: 25, alignSelf: "center" }}
                     />
-                    <Text key={`textprecib${i}`} style={styles.text_hour}>{data.days[posicao].hours[i].precipprob}%</Text>
-                    <Text key={`texthour${i}`} style={styles.text_hour}>{data.days[posicao].hours[i].datetime.slice(0, -3)}</Text>
+                    <Text key={`textprecib${i}`} style={styles.text_hour}>{ViewInfos.days[posicao].hours[i].precipprob}%</Text>
+                    <Text key={`texthour${i}`} style={styles.text_hour}>{ViewInfos.days[posicao].hours[i].datetime.slice(0, -3)}</Text>
                 </View>
             )
         }
@@ -111,7 +116,11 @@ export default function TelaPrincipal() {
                 <View style={styles.resposta}>
                     {ViewInfos != undefined ? (ViewInfos.days.map((componente, index) => (
                         index < 7 ? (
-                            <TouchableOpacity key={index} style={styles.views}>
+                            <TouchableOpacity key={index} style={[styles.views,index === DiaAtual? styles.view_escolhida : styles.views]}
+                             onPress={async () => {
+                                setDiaAtual(index)
+                                ArrumarViewTop(index);
+                                ArrumarViewHour(index)}}>
                                 <Image
                                     key={index + 20}
                                     source={{ uri: `https://github.com/dudrt/Climating_RN/blob/main/content/${componente.icon}.png?raw=true` }}
@@ -160,12 +169,7 @@ const styles = StyleSheet.create({
         fontSize: 18
     },
     button_top: {
-        // backgroundColor: "#E52828",
-        // width: "15%",
         marginStart: "4%",
-        // borderRadius: 30,
-        // justifyContent: "center",
-        // alignItems: "center"
     },
     resposta: {
         width: "100%",
@@ -226,5 +230,16 @@ const styles = StyleSheet.create({
     text_pesquisar:{
         fontSize:25,
         color:"#FFF"
+    },
+    view_escolhida:{
+        backgroundColor: "#353535",
+        margin: "2%",
+        marginBottom: "1%",
+        padding: 10,
+        borderRadius: 40,
+        flexDirection: "row",
+        marginTop: "2%",
+        height: "8%",
+        alignItems: "center"
     }
 })

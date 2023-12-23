@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import TelaPrincipal from './src/TelaPrincipal/TelaPrincipal';
+import Toast from 'react-native-toast-message';
 
 
 export default function App() {
@@ -8,6 +9,7 @@ export default function App() {
     <View style={styles.container}>
       <TelaPrincipal/>
       <StatusBar style="auto" />
+      <Toast />
     </View>
   );
 }
