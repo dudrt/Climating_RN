@@ -12,7 +12,7 @@ export default function TelaPrincipal() {
     const [DiaAtual, setDiaAtual] = useState(0)
 
     const FazerRequest = async () => {
-        axios.get(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${input}?unitGroup=metric&include=hours%2Cdays&lang=pt&key=824BLCVKKZCSN4HLQVJ6HBSPF&conten`)
+        axios.get(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${input}?unitGroup=metric&include=hours%2Cdays&lang=pt&key=SUA_KEY&conten`)
             .then((response) => {
                 setView(response.data)
                 setDiaAtual(0)
